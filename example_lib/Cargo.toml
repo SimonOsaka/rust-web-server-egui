@@ -26,7 +26,6 @@ poll-promise = { version = "0.1", default-features = false }
 # error: cannot import from modules (`env`) with `--no-modules`
 # reason: add "features = ['multi_threaded']" for egui crate will cause this.
 # temporary solution: target_arch 'wasm32' removes "features = ['multi_threaded']", not 'wasm32' keeps it.
-# offcial example no features, but default is 'multi_threaded'
 #################################################################
 # native:
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
