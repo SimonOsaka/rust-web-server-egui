@@ -31,8 +31,7 @@ done
 # ./setup_web.sh # <- call this first!
 
 FOLDER_NAME=${PWD##*/}
-CRATE_NAME=$FOLDER_NAME # assume crate name is the same as the folder name
-CRATE_NAME_SNAKE_CASE="${CRATE_NAME//-/_}" # for those who name crates with-kebab-case
+CRATE_NAME=example_app # assume crate name is the same as the folder name
 
 # This is required to enable the web_sys clipboard API which egui_web uses
 # https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Clipboard.html
@@ -40,7 +39,7 @@ CRATE_NAME_SNAKE_CASE="${CRATE_NAME//-/_}" # for those who name crates with-keba
 export RUSTFLAGS=--cfg=web_sys_unstable_apis
 
 # Clear output from old stuff:
-rm -f docs/${CRATE_NAME_SNAKE_CASE}_bg.wasm
+rm -f docs/${CRATE_NAME}_bg.wasm
 
 echo "Building rust…"
 BUILD=release
@@ -50,7 +49,7 @@ cargo build -p ${CRATE_NAME} --release --lib --target wasm32-unknown-unknown
 TARGET=`cargo metadata --format-version=1 | jq --raw-output .target_directory`
 
 echo "Generating JS bindings for wasm…"
-TARGET_NAME="${CRATE_NAME_SNAKE_CASE}.wasm"
+TARGET_NAME="${CRATE_NAME}.wasm"
 wasm-bindgen "${TARGET}/wasm32-unknown-unknown/${BUILD}/${TARGET_NAME}" \
   --out-dir docs --no-modules --no-typescript
 
@@ -60,7 +59,7 @@ if [ "${FAST}" = false ]; then
   wasm-opt docs/${CRATE_NAME}_bg.wasm -O2 --fast-math -o docs/${CRATE_NAME}_bg.wasm # add -g to get debug symbols
 fi
 
-echo "Finished: docs/${CRATE_NAME_SNAKE_CASE}.wasm"
+echo "Finished: docs/${CRATE_NAME}.wasm"
 
 if [ "${OPEN}" = true ]; then
   if [[ "$OSTYPE" == "linux-gnu"* ]]; then

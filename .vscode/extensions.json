@@ -1,0 +1,15 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the extensions.json format
+    "recommendations": [
+        "matklad.rust-analyzer",
+        "serayuzgur.crates",
+        "tamasfe.even-better-toml",
+        "vadimcn.vscode-lldb",
+        "gsppvo.vscode-commandbar",
+        "alphabotsec.vscode-eclipse-keybindings",
+        "ms-ceintl.vscode-language-pack-zh-hans",
+        "emmanuelbeziat.vscode-great-icons",
+        "usernamehw.errorlens"
+    ]
+}

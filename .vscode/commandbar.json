@@ -1,0 +1,76 @@
+{
+    "skipTerminateQuickPick": false,
+    "skipSwitchToOutput": false,
+    "skipErrorMessage": false,
+    "commands": [
+        {
+            "text": "▶︎ run",
+            "color": "lightgreen",
+            "tooltip": "cargo run",
+            "language": "rust",
+            "commandType": "palette",
+            "command": "workbench.action.tasks.runTask|cargo run",
+            "alignment": "left",
+            "priority": 10
+        },
+        {
+            "text": "▷ build",
+            "color": "yellow",
+            "tooltip": "cargo build",
+            "language": "rust",
+            "commandType": "palette",
+            "command": "workbench.action.tasks.runTask|cargo build",
+            "alignment": "left",
+            "priority": 9
+        },
+        {
+            "text": "✓ clippy",
+            "color": "Purple",
+            "tooltip": "cargo clippy",
+            "language": "rust",
+            "commandType": "palette",
+            "command": "workbench.action.tasks.runTask|cargo clippy",
+            "alignment": "left",
+            "priority": 8
+        },
+        {
+            "text": "🔥 run release",
+            "color": "brown",
+            "tooltip": "cargo run --release",
+            "language": "rust",
+            "commandType": "palette",
+            "command": "workbench.action.tasks.runTask|cargo run --release",
+            "alignment": "left",
+            "priority": 7
+        },
+        {
+            "text": "☄️ build release",
+            "color": "LightSteelBlue",
+            "tooltip": "cargo build --release",
+            "language": "rust",
+            "commandType": "palette",
+            "command": "workbench.action.tasks.runTask|cargo build --release",
+            "alignment": "left",
+            "priority": 6
+        },
+        {
+            "text": "🐧 release linux",
+            "color": "pink",
+            "tooltip": "cargo build --release --target=x86_64-unknown-linux-musl",
+            "language": "rust",
+            "commandType": "palette",
+            "command": "workbench.action.tasks.runTask|cargo build --release --target=x86_64-unknown-linux-musl",
+            "alignment": "left",
+            "priority": 5
+        },
+        {
+            "text": "Terminal",
+            "color": "orange",
+            "tooltip": "open a terminal in vscode",
+            "commandType": "palette",
+            "command": "workbench.action.terminal.toggleTerminal",
+            "alignment": "right",
+            "priority": 1000
+        }
+    ]
+}

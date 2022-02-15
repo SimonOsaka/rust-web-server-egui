@@ -1,0 +1,71 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            "command": [
+                "cargo run"
+            ],
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": "build",
+            "label": "cargo run"
+        },
+        {
+            "type": "shell",
+            "command": [
+                "cargo build"
+            ],
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": "build",
+            "label": "cargo build"
+        },
+        {
+            "type": "shell",
+            "command": [
+                "cargo clippy"
+            ],
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": "build",
+            "label": "cargo clippy"
+        },
+        {
+            "type": "shell",
+            "command": [
+                "cargo run --release"
+            ],
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": "build",
+            "label": "cargo run --release"
+        },
+        {
+            "type": "shell",
+            "command": [
+                "cargo build --release"
+            ],
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": "build",
+            "label": "cargo build --release"
+        },
+        {
+            "type": "shell",
+            "command": [
+                "OPENSSL_DIR=/usr/local/opt/openssl@1.1 CC_x86_64_unknown_linux_musl=x86_64-linux-musl-gcc cargo build --release --target=x86_64-unknown-linux-musl"
+            ],
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": "build",
+            "label": "cargo build --release --target=x86_64-unknown-linux-musl"
+        }
+    ]
+}

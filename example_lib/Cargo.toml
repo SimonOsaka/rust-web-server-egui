@@ -1,0 +1,39 @@
+[package]
+name = "example_lib"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.56"
+publish = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+
+
+[dependencies]
+epi = { version = "0.16.0" }
+
+serde = { version = "1", features = ["derive"] }
+ehttp = { version = "0.2.0" }
+image = { version = "0.24", default-features = false, features = [
+    "jpeg",
+    "png",
+] }
+poll-promise = { version = "0.1", default-features = false }
+#################################################################
+# > ./build_web.sh
+# Generating JS bindings for wasm…
+# error: cannot import from modules (`env`) with `--no-modules`
+# reason: add "features = ['multi_threaded']" for egui crate will cause this.
+# temporary solution: target_arch 'wasm32' removes "features = ['multi_threaded']", not 'wasm32' keeps it.
+# offcial example no features, but default is 'multi_threaded'
+#################################################################
+# native:
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+egui = { version = "0.16.1", default-features = false, features = [
+    "multi_threaded",
+] }
+
+# web:
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+egui = { version = "0.16.1", default-features = false }

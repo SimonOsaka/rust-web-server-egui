@@ -1,31 +1,20 @@
-[package]
-name = "eframe_template"
-version = "0.1.0"
-authors = ["Emil Ernerfeldt <emil.ernerfeldt@gmail.com>"]
-edition = "2021"
-rust-version = "1.56"
+[workspace]
+resolver = "2"
+members = ["example_app", "example_lib"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[lib]
-crate-type = ["cdylib", "rlib"]
-
-[dependencies]
-eframe = "0.16.0" # Gives us egui, epi and web+native backends
-
-serde = { version = "1", features = ["derive"], optional = true }
-
-[features]
-default = []
-persistence = ["eframe/persistence", "serde"] # Enable if you want to persist app state on shutdown
+[profile.dev]
+split-debuginfo = "unpacked"
 
 [profile.release]
-opt-level = 2 # fast and small wasm
+opt-level = 2
 
 [patch.crates-io]
-
-# If you want to use the bleeding edge version of `egui`:
-# eframe = { git = "https://github.com/emilk/egui", branch = "master" }
-
-# If you fork https://github.com/emilk/egui you can test with:
-# eframe = { path = "../egui/eframe" }
+eframe = { git = "https://github.com/emilk/egui", branch = "master" }
+epaint = { git = "https://github.com/emilk/egui", branch = "master" }
+egui = { git = "https://github.com/emilk/egui", branch = "master" }
+epi = { git = "https://github.com/emilk/egui", branch = "master" }
+emath = { git = "https://github.com/emilk/egui", branch = "master" }
+egui-winit = { git = "https://github.com/emilk/egui", branch = "master" }
+# egui_glium = { git = "https://github.com/emilk/egui", branch = "master" }
+# egui_glow = { git = "https://github.com/emilk/egui", branch = "master" }
+egui_web = { git = "https://github.com/emilk/egui", branch = "master" }
