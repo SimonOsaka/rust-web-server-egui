@@ -1,21 +1,41 @@
-use poll_promise::Promise;
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+};
+
+use egui::{Color32, TextStyle, TextureHandle};
+
+type ImageHashMap = Arc<Mutex<HashMap<String, Option<TextureHandle>>>>;
+const FONT_TABLE_TITLE: egui::FontId = egui::FontId {
+    size: 32.0,
+    family: egui::FontFamily::Proportional,
+};
+
+#[derive(Clone)]
+struct Game {
+    image_url: String,
+    name: String,
+    platform: Vec<String>,
+    issue_date: String,
+}
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[cfg_attr(feature = "persistence", derive(serde::Deserialize, serde::Serialize))]
 #[cfg_attr(feature = "persistence", serde(default))] // if we add new fields, give them default values when deserializing old state
 pub struct App {
-    url: String,
-    texture_id: Option<egui::TextureId>,
-    // #[cfg_attr(feature = "serde", serde(skip))]
-    promise: Option<Promise<ehttp::Result<Resource>>>,
+    inspection: bool,
+    images: ImageHashMap,
+    games: Vec<Game>,
+    my_image: Option<TextureHandle>,
 }
 
-impl Default for App {
-    fn default() -> Self {
+impl App {
+    pub fn new() -> Self {
         Self {
-            url: "https://raw.githubusercontent.com/emilk/egui/master/README.md".to_owned(),
-            texture_id: None,
-            promise: Default::default(),
+            inspection: false,
+            images: Default::default(),
+            games: Vec::default(),
+            my_image: Default::default(),
         }
     }
 }
@@ -37,6 +57,128 @@ impl epi::App for App {
         #[cfg(feature = "persistence")]
         if let Some(storage) = _storage {
             *self = epi::get_value(storage, epi::APP_KEY).unwrap_or_default()
+        }
+
+        self.my_image = Some(_ctx.load_texture("my_image", egui::ColorImage::example()));
+
+        // Start with the default fonts (we will be adding to them rather than replacing them).
+        let mut fonts = egui::FontDefinitions::default();
+
+        // Install my own font (maybe supporting non-latin characters).
+        // .ttf and .otf files supported.
+        fonts.font_data.insert(
+            "my_font".to_owned(),
+            egui::FontData::from_static(include_bytes!("../../font/SourceHanSerifCN-Regular.otf")),
+        );
+
+        // Put my font first (highest priority) for proportional text:
+        fonts
+            .families
+            .entry(egui::FontFamily::Proportional)
+            .or_default()
+            .insert(0, "my_font".to_owned());
+
+        // Put my font as last fallback for monospace:
+        fonts
+            .families
+            .entry(egui::FontFamily::Monospace)
+            .or_default()
+            .push("my_font".to_owned());
+
+        // Tell egui to use these fonts:
+        _ctx.set_fonts(fonts);
+
+        let games = [
+            Game {
+                image_url: "https://picsum.photos/seed/picsum/184/69".to_string(),
+                name: "异界深渊：觉醒".to_string(),
+                platform: vec!["WEB".to_string()],
+                issue_date: "2022-02-02".to_string(),
+            },
+            Game {
+                image_url: "https://picsum.photos/seed/picsum/185/69".to_string(),
+                name: "异界深渊：觉醒".to_string(),
+                platform: vec!["WEB".to_string()],
+                issue_date: "2022-02-02".to_string(),
+            },
+            Game {
+                image_url: "https://picsum.photos/seed/picsum/186/69".to_string(),
+                name: "Cyberpunk".to_string(),
+                platform: vec!["XBOX".to_string(), "PS5".to_string()],
+                issue_date: "2020-01-01".to_string(),
+            },
+            Game {
+                image_url: "https://picsum.photos/seed/picsum/187/69".to_string(),
+                name: "Dysmantle".to_string(),
+                platform: vec!["XBOX".to_string(), "PS5".to_string()],
+                issue_date: "2020-01-01".to_string(),
+            },
+            Game {
+                image_url: "https://picsum.photos/seed/picsum/188/69".to_string(),
+                name: "DeathTrash".to_string(),
+                platform: vec!["XBOX".to_string(), "PS5".to_string()],
+                issue_date: "2020-01-01".to_string(),
+            },
+            Game {
+                image_url: "https://picsum.photos/seed/picsum/189/69".to_string(),
+                name: "it-takes-two".to_string(),
+                platform: vec!["XBOX".to_string(), "PS5".to_string()],
+                issue_date: "2020-01-01".to_string(),
+            },
+            Game {
+                image_url: "https://picsum.photos/seed/picsum/190/69".to_string(),
+                name: "assassins-creed-valhalla".to_string(),
+                platform: vec!["XBOX".to_string(), "PS5".to_string()],
+                issue_date: "2020-01-01".to_string(),
+            },
+            Game {
+                image_url: "https://picsum.photos/seed/picsum/191/69".to_string(),
+                name: "art-of-rally".to_string(),
+                platform: vec!["XBOX".to_string(), "PS5".to_string()],
+                issue_date: "2020-01-01".to_string(),
+            },
+            Game {
+                image_url: "https://picsum.photos/seed/picsum/192/69".to_string(),
+                name: "doom-eternal".to_string(),
+                platform: vec!["XBOX".to_string(), "PS5".to_string()],
+                issue_date: "2020-01-01".to_string(),
+            },
+            Game {
+                image_url: "https://picsum.photos/seed/picsum/193/69".to_string(),
+                name: "fifa-21".to_string(),
+                platform: vec!["XBOX".to_string(), "PS5".to_string()],
+                issue_date: "2020-01-01".to_string(),
+            },
+            Game {
+                image_url: "https://picsum.photos/seed/picsum/194/69".to_string(),
+                name: "genshin-impact".to_string(),
+                platform: vec!["XBOX".to_string(), "PS5".to_string()],
+                issue_date: "2020-01-01".to_string(),
+            },
+            Game {
+                image_url: "https://picsum.photos/seed/picsum/195/69".to_string(),
+                name: "nba-2k21".to_string(),
+                platform: vec!["XBOX".to_string(), "PS5".to_string()],
+                issue_date: "2020-01-01".to_string(),
+            },
+            Game {
+                image_url: "https://picsum.photos/seed/picsum/196/69".to_string(),
+                name: "super-meat-boy-forever".to_string(),
+                platform: vec!["XBOX".to_string(), "PS5".to_string()],
+                issue_date: "2020-01-01".to_string(),
+            },
+            Game {
+                image_url: "https://picsum.photos/seed/picsum/197/69".to_string(),
+                name: "the-dungeon-of-naheulbeuk-the-amulet-of-chaos".to_string(),
+                platform: vec!["XBOX".to_string(), "PS5".to_string()],
+                issue_date: "2020-01-01".to_string(),
+            },
+        ];
+
+        self.games = games.to_vec();
+
+        for game in games {
+            download_image(game.image_url, _ctx, _frame, Arc::clone(&self.images));
         }
     }
 
@@ -63,6 +205,13 @@ impl epi::App for App {
                         frame.quit();
                     }
                 });
+                if cfg!(debug_assertions) {
+                    ui.menu_button("Debug", |ui| {
+                        if ui.button("Inspection UI").clicked() {
+                            self.inspection = true
+                        }
+                    });
+                }
             });
         });
 
@@ -96,259 +245,64 @@ impl epi::App for App {
             // The central panel the region left after adding TopPanel's and SidePanel's
             egui::warn_if_debug_build(ui);
 
-            // Show the image:
-            let t_id;
+            ui.style_mut().override_text_style = Some(TextStyle::Heading);
 
-            if let Some(tt) = self.texture_id {
-                t_id = tt;
-                println!("id: {:?}", t_id);
-                ui.horizontal_wrapped(|ui| {
-                    ui.image(tt, egui::Vec2::new(64.0, 64.0));
-                    ui.image(tt, egui::Vec2::new(64.0, 64.0));
-                    ui.image(tt, egui::Vec2::new(64.0, 64.0));
-                    ui.image(tt, egui::Vec2::new(64.0, 64.0));
-                    ui.image(tt, egui::Vec2::new(64.0, 64.0));
-                    ui.image(tt, egui::Vec2::new(64.0, 64.0));
-                    ui.image(tt, egui::Vec2::new(64.0, 64.0));
-                    ui.image(tt, egui::Vec2::new(64.0, 64.0));
-                    ui.image(tt, egui::Vec2::new(64.0, 64.0));
-                    ui.image(tt, egui::Vec2::new(64.0, 64.0));
-                });
-            } else {
-                let texture: &egui::TextureHandle = &ui
-                    .ctx()
-                    .load_texture("my-image", egui::ColorImage::example());
-                t_id = texture.id();
-                ui.horizontal_wrapped(|ui| {
-                    ui.image(texture, texture.size_vec2());
-                    ui.image(texture, texture.size_vec2());
-                    ui.image(texture, texture.size_vec2());
-                    ui.image(texture, texture.size_vec2());
-                    ui.image(texture, texture.size_vec2());
-                    ui.image(texture, texture.size_vec2());
-                    ui.image(texture, texture.size_vec2());
-                    ui.image(texture, texture.size_vec2());
-                    ui.image(texture, texture.size_vec2());
-                    ui.image(texture, texture.size_vec2());
-                });
+            if cfg!(debug_assertions) {
+                egui::Window::new("🔍 Inspection")
+                    .open(&mut self.inspection)
+                    .vscroll(true)
+                    .show(ctx, |ui| {
+                        ctx.inspection_ui(ui);
+                    });
             }
 
-            ui.separator();
-
-            let trigger_fetch = ui_url(ui, frame, &mut self.url);
-
-            ui.horizontal_wrapped(|ui| {
-                ui.spacing_mut().item_spacing.x = 0.0;
-                ui.label("HTTP requests made using ");
-                ui.hyperlink_to("ehttp", "https://www.github.com/emilk/ehttp");
-                ui.label(".");
-            });
-
-            if trigger_fetch {
-                let ctx = ctx.clone();
-                let frame = frame.clone();
-                let (sender, promise) = Promise::new();
-                let request = ehttp::Request::get(&self.url);
-                println!("aaaaaaa");
-                ctx.tex_manager().write().free(t_id);
-                ehttp::fetch(request, move |response| {
-                    frame.request_repaint(); // wake up UI thread
-                    println!("bbbbbbb");
-                    let resource = response.map(|response| Resource::from_response(&ctx, response));
-                    println!("bbbbbbb1");
-                    sender.send(resource);
-                    println!("bbbbbbb2");
-                });
-                self.promise = Some(promise);
-            }
-
-            ui.separator();
-
-            if let Some(promise) = &self.promise {
-                if let Some(result) = promise.ready() {
-                    match result {
-                        Ok(resource) => {
-                            println!("ccccccc");
-                            let t = resource.texture.as_ref();
-                            println!("ddddddd");
-                            self.texture_id = Some(t.unwrap().id());
-                            println!("eeeeeee");
-                            ui_resource(ui, resource);
-                            println!("fffffff");
-                        }
-                        Err(error) => {
-                            // This should only happen if the fetch API isn't available or something similar.
-                            ui.colored_label(
-                                egui::Color32::RED,
-                                if error.is_empty() { "Error" } else { error },
-                            );
-                        }
-                    }
-                } else {
-                    ui.add(egui::Spinner::new());
-                }
-            }
-            // egui::ScrollArea::vertical()
-            //     .auto_shrink([false, true])
-            //     .show(ui, |ui| {
-            //         egui::Grid::new("my_grid")
-            //             .num_columns(6)
-            //             .striped(true)
-            //             .spacing([40.0, 4.0])
-            //             // .min_col_width(10.0)
-            //             // .max_col_width(200.0)
-            //             .show(ui, |ui| {
-            //                 for row in 0..100 {
-            //                     for col in 0..6 {
-            //                         if col == 0 {
-            //                             ui.label(format!("row {}", row));
-            //                         } else {
-            //                             ui.label(format!("col {}", col));
-            //                         }
-            //                     }
-            //                     ui.end_row();
-            //                 }
-            //             });
-            //     });
-        });
-    }
-}
-
-fn ui_url(ui: &mut egui::Ui, frame: &epi::Frame, url: &mut String) -> bool {
-    let mut trigger_fetch = false;
-
-    ui.horizontal(|ui| {
-        ui.label("URL:");
-        trigger_fetch |= ui
-            .add(egui::TextEdit::singleline(url).desired_width(f32::INFINITY))
-            .lost_focus();
-    });
-
-    if frame.is_web() {
-        ui.label("HINT: paste the url of this page into the field above!");
-    }
-
-    ui.horizontal(|ui| {
-        if ui.button("Source code for this example").clicked() {
-            *url = format!(
-                "https://raw.githubusercontent.com/emilk/egui/master/{}",
-                file!()
-            );
-            trigger_fetch = true;
-        }
-        if ui.button("Random image").clicked() {
-            let seed = ui.input().time;
-            let side = 640;
-            *url = format!("https://picsum.photos/seed/{}/{}", seed, side);
-            trigger_fetch = true;
-        }
-    });
-
-    trigger_fetch
-}
-
-fn ui_resource(ui: &mut egui::Ui, resource: &Resource) {
-    let Resource {
-        response,
-        text,
-        texture,
-    } = resource;
-
-    ui.monospace(format!("url:          {}", response.url));
-    ui.monospace(format!(
-        "status:       {} ({})",
-        response.status, response.status_text
-    ));
-    ui.monospace(format!(
-        "content-type: {}",
-        response.content_type().unwrap_or_default()
-    ));
-    ui.monospace(format!(
-        "size:         {:.1} kB",
-        response.bytes.len() as f32 / 1000.0
-    ));
-
-    ui.separator();
-
-    egui::ScrollArea::vertical()
-        .auto_shrink([false; 2])
-        .show(ui, |ui| {
-            egui::CollapsingHeader::new("Response headers")
-                .default_open(false)
+            egui::ScrollArea::horizontal()
+                .id_source("scroll_images")
+                .always_show_scroll(true)
                 .show(ui, |ui| {
-                    egui::Grid::new("response_headers")
-                        .spacing(egui::vec2(ui.spacing().item_spacing.x * 2.0, 0.0))
+                    ui.horizontal(|ui| {
+                        for image_tex_opt in self.images.lock().unwrap().values() {
+                            if let Some(image_tex) = image_tex_opt {
+                                ui.image(image_tex, image_tex.size_vec2());
+                            }
+                        }
+                    });
+                });
+
+            egui::ScrollArea::vertical()
+                .id_source("scroll_grid")
+                .auto_shrink([false, true])
+                .show(ui, |ui| {
+                    egui::Grid::new("my_grid")
+                        .num_columns(3)
+                        .striped(true)
+                        .spacing([40.0, 4.0])
+                        // .min_col_width(10.0)
+                        // .max_col_width(200.0)
                         .show(ui, |ui| {
-                            for header in &response.headers {
-                                ui.label(header.0);
-                                ui.label(header.1);
+                            for game in &self.games {
+                                let image_tex = self.images.lock().unwrap();
+                                if image_tex.contains_key(&game.image_url) {
+                                    let tex =
+                                        image_tex.get(&game.image_url).unwrap().as_ref().unwrap();
+                                    ui.image(tex, tex.size_vec2());
+                                } else {
+                                    if let Some(image) = &self.my_image {
+                                        ui.image(image, image.size_vec2());
+                                    }
+                                }
+                                ui.label(
+                                    egui::RichText::new(game.name.clone())
+                                        .color(Color32::BLUE)
+                                        .font(FONT_TABLE_TITLE),
+                                );
+                                ui.label(game.platform.join(", "));
+                                ui.label(game.issue_date.clone());
                                 ui.end_row();
                             }
-                        })
+                        });
                 });
-
-            ui.separator();
-
-            if let Some(text) = &text {
-                let tooltip = "Click to copy the response body";
-                if ui.button("📋").on_hover_text(tooltip).clicked() {
-                    ui.output().copied_text = text.clone();
-                }
-                ui.separator();
-            }
-
-            if let Some(texture) = texture {
-                let mut size = texture.size_vec2();
-                size *= (ui.available_width() / size.x).min(1.0);
-                ui.image(texture, size);
-            } else if let Some(text) = &text {
-                // selectable_text(ui, text);
-            } else {
-                ui.monospace("[binary]");
-            }
         });
-}
-
-struct Resource {
-    /// HTTP response
-    response: ehttp::Response,
-
-    text: Option<String>,
-
-    /// If set, the response was an image.
-    texture: Option<egui::TextureHandle>,
-}
-
-impl Resource {
-    fn from_response(ctx: &egui::Context, response: ehttp::Response) -> Self {
-        println!("xxxxxxxx");
-        let content_type = response.content_type().unwrap_or_default();
-        println!("yyyyyyyy");
-        let image = if content_type.starts_with("image/") {
-            println!("zzzzzzzz");
-            load_image(&response.bytes).ok()
-        } else {
-            None
-        };
-
-        // let texture = image.map(|image| ctx.load_texture(&response.url, image));
-        println!("11111111");
-        let texture = image.map(|image| {
-            // ctx.load_texture("my-image", image.clone());
-            ctx.load_texture(&response.url, image)
-        });
-
-        println!("load texture");
-
-        println!("write texture");
-        let text = response.text();
-        let text = text.map(|text| text.to_owned());
-
-        Self {
-            response,
-            text,
-            texture,
-        }
     }
 }
 
@@ -362,4 +316,30 @@ fn load_image(image_data: &[u8]) -> Result<egui::ColorImage, image::ImageError> 
         size,
         pixels.as_slice(),
     ))
+}
+
+fn parse_image(ctx: &egui::Context, url: String, data: &[u8]) -> Option<TextureHandle> {
+    let image = load_image(data).ok();
+    image.map(|image| ctx.load_texture(url, image))
+}
+
+fn download_image(
+    image_url: String,
+    ctx: &egui::Context,
+    frame: &epi::Frame,
+    images: ImageHashMap,
+) {
+    let ctx2 = ctx.clone();
+    let frame2 = frame.clone();
+    ehttp::fetch(ehttp::Request::get(image_url.clone()), move |r| {
+        if let Ok(r) = r {
+            let data = r.bytes;
+            if let Some(handle) = parse_image(&ctx2, image_url.clone(), &data) {
+                if images.lock().unwrap().get(&image_url).is_none() {
+                    images.lock().unwrap().insert(image_url, Some(handle));
+                }
+                frame2.request_repaint();
+            }
+        }
+    });
 }

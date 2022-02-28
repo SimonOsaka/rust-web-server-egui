@@ -59,7 +59,7 @@ if [ "${FAST}" = false ]; then
   wasm-opt docs/${CRATE_NAME}_bg.wasm -O2 --fast-math -o docs/${CRATE_NAME}_bg.wasm # add -g to get debug symbols
 fi
 
-echo "Finished: docs/${CRATE_NAME}.wasm"
+echo "Finished: docs/${CRATE_NAME}_bg.wasm"
 
 if [ "${OPEN}" = true ]; then
   if [[ "$OSTYPE" == "linux-gnu"* ]]; then

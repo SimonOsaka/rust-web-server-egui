@@ -11,7 +11,7 @@ publish = false
 
 
 [dependencies]
-epi = { version = "0.16.0" }
+epi = { version = "0.17.0" }
 
 serde = { version = "1", features = ["derive"] }
 ehttp = { version = "0.2.0" }
@@ -20,6 +20,8 @@ image = { version = "0.24", default-features = false, features = [
     "png",
 ] }
 poll-promise = { version = "0.1", default-features = false }
+
+url = { version = "2.2.2" }
 #################################################################
 # > ./build_web.sh
 # Generating JS bindings for wasm…
@@ -28,11 +30,11 @@ poll-promise = { version = "0.1", default-features = false }
 # temporary solution: target_arch 'wasm32' removes "features = ['multi_threaded']", not 'wasm32' keeps it.
 #################################################################
 # native:
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-egui = { version = "0.16.1", default-features = false, features = [
+# [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+egui = { version = "0.17.0", default-features = false, features = [
     "multi_threaded",
 ] }
 
 # web:
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-egui = { version = "0.16.1", default-features = false }
+# [target.'cfg(target_arch = "wasm32")'.dependencies]
+# egui = { version = "0.17.0", default-features = false }

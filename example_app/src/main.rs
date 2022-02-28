@@ -7,7 +7,7 @@
 fn main() {
     use example_lib::app::App;
 
-    let app = App::default();
+    let app = App::new();
     let native_options = eframe::NativeOptions::default();
     eframe::run_native(Box::new(app), native_options);
 }

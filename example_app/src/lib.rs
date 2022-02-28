@@ -17,6 +17,6 @@ use eframe::wasm_bindgen::{self, prelude::*};
 pub fn start(canvas_id: &str) -> Result<(), eframe::wasm_bindgen::JsValue> {
     use example_lib::app::App;
 
-    let app = App::default();
+    let app = App::new();
     eframe::start_web(canvas_id, Box::new(app))
 }
