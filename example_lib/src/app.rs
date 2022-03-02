@@ -3,7 +3,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use egui::{Color32, TextStyle, TextureHandle};
+use egui::{vec2, Color32, Context, TextStyle, TextureHandle, Ui};
 
 type ImageHashMap = Arc<Mutex<HashMap<String, Option<TextureHandle>>>>;
 const FONT_TABLE_TITLE: egui::FontId = egui::FontId {
@@ -12,11 +12,33 @@ const FONT_TABLE_TITLE: egui::FontId = egui::FontId {
 };
 
 #[derive(Clone)]
-struct Game {
+struct ImageSize {
+    image_width: f32,
+    image_height: f32,
+}
+
+#[derive(Clone)]
+struct Image {
     image_url: String,
+    image_size: Option<ImageSize>,
+}
+#[derive(Clone)]
+struct Movie {
+    image: Image,
     name: String,
     platform: Vec<String>,
     issue_date: String,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum LeftMenu {
+    Action,
+    Comedy,
+    Adventure,
+    BTV,
+    MTV,
+    FTV,
+    WTV,
 }
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
@@ -25,8 +47,9 @@ struct Game {
 pub struct App {
     inspection: bool,
     images: ImageHashMap,
-    games: Vec<Game>,
+    movies: Vec<Movie>,
     my_image: Option<TextureHandle>,
+    left_menu: LeftMenu,
 }
 
 impl App {
@@ -34,8 +57,9 @@ impl App {
         Self {
             inspection: false,
             images: Default::default(),
-            games: Vec::default(),
+            movies: Vec::default(),
             my_image: Default::default(),
+            left_menu: LeftMenu::Action,
         }
     }
 }
@@ -88,98 +112,9 @@ impl epi::App for App {
         // Tell egui to use these fonts:
         _ctx.set_fonts(fonts);
 
-        let games = [
-            Game {
-                image_url: "https://picsum.photos/seed/picsum/184/69".to_string(),
-                name: "异界深渊：觉醒".to_string(),
-                platform: vec!["WEB".to_string()],
-                issue_date: "2022-02-02".to_string(),
-            },
-            Game {
-                image_url: "https://picsum.photos/seed/picsum/185/69".to_string(),
-                name: "异界深渊：觉醒".to_string(),
-                platform: vec!["WEB".to_string()],
-                issue_date: "2022-02-02".to_string(),
-            },
-            Game {
-                image_url: "https://picsum.photos/seed/picsum/186/69".to_string(),
-                name: "Cyberpunk".to_string(),
-                platform: vec!["XBOX".to_string(), "PS5".to_string()],
-                issue_date: "2020-01-01".to_string(),
-            },
-            Game {
-                image_url: "https://picsum.photos/seed/picsum/187/69".to_string(),
-                name: "Dysmantle".to_string(),
-                platform: vec!["XBOX".to_string(), "PS5".to_string()],
-                issue_date: "2020-01-01".to_string(),
-            },
-            Game {
-                image_url: "https://picsum.photos/seed/picsum/188/69".to_string(),
-                name: "DeathTrash".to_string(),
-                platform: vec!["XBOX".to_string(), "PS5".to_string()],
-                issue_date: "2020-01-01".to_string(),
-            },
-            Game {
-                image_url: "https://picsum.photos/seed/picsum/189/69".to_string(),
-                name: "it-takes-two".to_string(),
-                platform: vec!["XBOX".to_string(), "PS5".to_string()],
-                issue_date: "2020-01-01".to_string(),
-            },
-            Game {
-                image_url: "https://picsum.photos/seed/picsum/190/69".to_string(),
-                name: "assassins-creed-valhalla".to_string(),
-                platform: vec!["XBOX".to_string(), "PS5".to_string()],
-                issue_date: "2020-01-01".to_string(),
-            },
-            Game {
-                image_url: "https://picsum.photos/seed/picsum/191/69".to_string(),
-                name: "art-of-rally".to_string(),
-                platform: vec!["XBOX".to_string(), "PS5".to_string()],
-                issue_date: "2020-01-01".to_string(),
-            },
-            Game {
-                image_url: "https://picsum.photos/seed/picsum/192/69".to_string(),
-                name: "doom-eternal".to_string(),
-                platform: vec!["XBOX".to_string(), "PS5".to_string()],
-                issue_date: "2020-01-01".to_string(),
-            },
-            Game {
-                image_url: "https://picsum.photos/seed/picsum/193/69".to_string(),
-                name: "fifa-21".to_string(),
-                platform: vec!["XBOX".to_string(), "PS5".to_string()],
-                issue_date: "2020-01-01".to_string(),
-            },
-            Game {
-                image_url: "https://picsum.photos/seed/picsum/194/69".to_string(),
-                name: "genshin-impact".to_string(),
-                platform: vec!["XBOX".to_string(), "PS5".to_string()],
-                issue_date: "2020-01-01".to_string(),
-            },
-            Game {
-                image_url: "https://picsum.photos/seed/picsum/195/69".to_string(),
-                name: "nba-2k21".to_string(),
-                platform: vec!["XBOX".to_string(), "PS5".to_string()],
-                issue_date: "2020-01-01".to_string(),
-            },
-            Game {
-                image_url: "https://picsum.photos/seed/picsum/196/69".to_string(),
-                name: "super-meat-boy-forever".to_string(),
-                platform: vec!["XBOX".to_string(), "PS5".to_string()],
-                issue_date: "2020-01-01".to_string(),
-            },
-            Game {
-                image_url: "https://picsum.photos/seed/picsum/197/69".to_string(),
-                name: "the-dungeon-of-naheulbeuk-the-amulet-of-chaos".to_string(),
-                platform: vec!["XBOX".to_string(), "PS5".to_string()],
-                issue_date: "2020-01-01".to_string(),
-            },
-        ];
+        self.movies = data_action();
 
-        self.games = games.to_vec();
-
-        for game in games {
-            download_image(game.image_url, _ctx, _frame, Arc::clone(&self.images));
-        }
+        store_movies(self, _ctx, _frame);
     }
 
     /// Called by the frame work to save state before shutdown.
@@ -221,17 +156,29 @@ impl epi::App for App {
             egui::CollapsingHeader::new("Movies")
                 .default_open(false)
                 .show(ui, |ui| {
-                    if ui.button("Action").clicked() {}
-                    if ui.button("Comedy").clicked() {}
-                    if ui.button("Adventure").clicked() {}
+                    if ui
+                        .selectable_value(&mut self.left_menu, LeftMenu::Action, "Action")
+                        .clicked()
+                    {
+                        self.movies = data_action();
+                        store_movies(self, ctx, frame);
+                    };
+                    if ui
+                        .selectable_value(&mut self.left_menu, LeftMenu::Comedy, "Comedy")
+                        .clicked()
+                    {
+                        self.movies = data_comedy();
+                        store_movies(self, ctx, frame);
+                    }
+                    ui.selectable_value(&mut self.left_menu, LeftMenu::Adventure, "Adventure");
                 });
             egui::CollapsingHeader::new("TVs")
                 .default_open(false)
                 .show(ui, |ui| {
-                    if ui.label("BTV").clicked() {}
-                    if ui.button("MTV").clicked() {}
-                    if ui.button("FTV").clicked() {}
-                    if ui.button("WTV").clicked() {}
+                    ui.selectable_value(&mut self.left_menu, LeftMenu::BTV, "BTV");
+                    ui.selectable_value(&mut self.left_menu, LeftMenu::MTV, "MTV");
+                    ui.selectable_value(&mut self.left_menu, LeftMenu::FTV, "FTV");
+                    ui.selectable_value(&mut self.left_menu, LeftMenu::WTV, "WTV");
                 });
 
             ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
@@ -256,54 +203,201 @@ impl epi::App for App {
                     });
             }
 
-            egui::ScrollArea::horizontal()
-                .id_source("scroll_images")
-                .always_show_scroll(true)
-                .show(ui, |ui| {
-                    ui.horizontal(|ui| {
-                        for image_tex_opt in self.images.lock().unwrap().values() {
-                            if let Some(image_tex) = image_tex_opt {
-                                ui.image(image_tex, image_tex.size_vec2());
-                            }
-                        }
-                    });
-                });
-
-            egui::ScrollArea::vertical()
-                .id_source("scroll_grid")
-                .auto_shrink([false, true])
-                .show(ui, |ui| {
-                    egui::Grid::new("my_grid")
-                        .num_columns(3)
-                        .striped(true)
-                        .spacing([40.0, 4.0])
-                        // .min_col_width(10.0)
-                        // .max_col_width(200.0)
-                        .show(ui, |ui| {
-                            for game in &self.games {
-                                let image_tex = self.images.lock().unwrap();
-                                if image_tex.contains_key(&game.image_url) {
-                                    let tex =
-                                        image_tex.get(&game.image_url).unwrap().as_ref().unwrap();
-                                    ui.image(tex, tex.size_vec2());
-                                } else {
-                                    if let Some(image) = &self.my_image {
-                                        ui.image(image, image.size_vec2());
-                                    }
-                                }
-                                ui.label(
-                                    egui::RichText::new(game.name.clone())
-                                        .color(Color32::BLUE)
-                                        .font(FONT_TABLE_TITLE),
-                                );
-                                ui.label(game.platform.join(", "));
-                                ui.label(game.issue_date.clone());
-                                ui.end_row();
-                            }
-                        });
-                });
+            match self.left_menu {
+                LeftMenu::Action => display_action(ui, self),
+                LeftMenu::Comedy => display_action(ui, self),
+                LeftMenu::Adventure => todo!(),
+                LeftMenu::BTV => todo!(),
+                LeftMenu::MTV => todo!(),
+                LeftMenu::FTV => todo!(),
+                LeftMenu::WTV => todo!(),
+            };
         });
     }
+}
+
+fn display_action(ui: &mut Ui, app: &mut App) {
+    egui::ScrollArea::horizontal()
+        .id_source("scroll_images")
+        .always_show_scroll(true)
+        .show(ui, |ui| {
+            ui.horizontal(|ui| {
+                for image_tex_opt in app.images.lock().unwrap().values() {
+                    if let Some(image_tex) = image_tex_opt {
+                        ui.image(image_tex, vec2(115.0, 162.0));
+                    }
+                }
+            });
+        });
+
+    egui::ScrollArea::vertical()
+        .id_source("scroll_grid")
+        .auto_shrink([false, false])
+        .show(ui, |ui| {
+            egui::Grid::new("my_grid")
+                .num_columns(3)
+                .striped(true)
+                .spacing([40.0, 4.0])
+                // .min_col_width(10.0)
+                // .max_col_width(200.0)
+                .show(ui, |ui| {
+                    for game in &app.movies {
+                        let image_tex = app.images.lock().unwrap();
+                        if image_tex.contains_key(&game.image.image_url) {
+                            let tex = image_tex
+                                .get(&game.image.image_url)
+                                .unwrap()
+                                .as_ref()
+                                .unwrap();
+                            ui.image(
+                                tex,
+                                match &game.image.image_size {
+                                    Some(size) => egui::vec2(size.image_width, size.image_height),
+                                    None => tex.size_vec2(),
+                                },
+                            );
+                        } else {
+                            if let Some(image) = &app.my_image {
+                                ui.image(image, image.size_vec2());
+                            }
+                        }
+                        ui.label(
+                            egui::RichText::new(game.name.clone())
+                                .color(Color32::BLUE)
+                                .font(FONT_TABLE_TITLE),
+                        );
+                        ui.horizontal(|ui| {
+                            for p in game.platform.clone() {
+                                ui.label(
+                                    egui::RichText::new(p).background_color(Color32::LIGHT_GRAY),
+                                );
+                            }
+                        });
+                        ui.label(game.issue_date.clone());
+                        ui.end_row();
+                    }
+                });
+        });
+}
+
+fn data_action() -> Vec<Movie> {
+    [
+        Movie {
+            image: Image {
+                image_url: "http://localhost:8080/images/p462657443.jpg".to_string(),
+                image_size: Some(ImageSize {
+                    image_width: 115.0,
+                    image_height: 164.0,
+                }),
+            },
+            name: "The Dark Knight".to_string(),
+            platform: vec!["netflix".to_string()],
+            issue_date: "2008-07-18".to_string(),
+        },
+        Movie {
+            image: Image {
+                image_url: "http://localhost:8080/images/p2209718348.jpg".to_string(),
+                image_size: Some(ImageSize {
+                    image_width: 115.0,
+                    image_height: 164.0,
+                }),
+            },
+            name: "The Hunger Games".to_string(),
+            platform: vec!["amazon prime".to_string()],
+            issue_date: "2012-03-23".to_string(),
+        },
+        Movie {
+            image: Image {
+                image_url: "http://localhost:8080/images/p2279945831.jpg".to_string(),
+                image_size: Some(ImageSize {
+                    image_width: 115.0,
+                    image_height: 164.0,
+                }),
+            },
+            name: "The Revenant".to_string(),
+            platform: vec!["netflix".to_string()],
+            issue_date: "2016-01-08".to_string(),
+        },
+        Movie {
+            image: Image {
+                image_url: "http://localhost:8080/images/p858079649.jpg".to_string(),
+                image_size: Some(ImageSize {
+                    image_width: 115.0,
+                    image_height: 164.0,
+                }),
+            },
+            name: "King Kong".to_string(),
+            platform: vec!["netflix".to_string()],
+            issue_date: "2005-12-14".to_string(),
+        },
+    ]
+    .to_vec()
+}
+
+fn data_comedy() -> Vec<Movie> {
+    [
+        Movie {
+            image: Image {
+                image_url: String::from("http://localhost:8080/images/p735379215.jpg"),
+                image_size: Some(ImageSize {
+                    image_width: 115.0,
+                    image_height: 164.0,
+                }),
+            },
+            name: "The Devil Wears Prada".to_string(),
+            platform: vec!["netflix".to_string()],
+            issue_date: "2006-06-30".to_string(),
+        },
+        Movie {
+            image: Image {
+                image_url: "http://localhost:8080/images/p792443418.jpg".to_string(),
+                image_size: Some(ImageSize {
+                    image_width: 115.0,
+                    image_height: 164.0,
+                }),
+            },
+            name: "Lock, Stock and Two Smoking Barrels".to_string(),
+            platform: vec!["netflix".to_string(), "amazon prime".to_string()],
+            issue_date: "1998-08-28".to_string(),
+        },
+        Movie {
+            image: Image {
+                image_url: "http://localhost:8080/images/p854757687.jpg".to_string(),
+                image_size: Some(ImageSize {
+                    image_width: 115.0,
+                    image_height: 164.0,
+                }),
+            },
+            name: "The Terminal".to_string(),
+            platform: vec!["amazon prime".to_string()],
+            issue_date: "2004-06-18".to_string(),
+        },
+        Movie {
+            image: Image {
+                image_url: "http://localhost:8080/images/p1454261925.jpg".to_string(),
+                image_size: Some(ImageSize {
+                    image_width: 115.0,
+                    image_height: 164.0,
+                }),
+            },
+            name: "Intouchables".to_string(),
+            platform: vec!["netflix".to_string()],
+            issue_date: "2011-11-02".to_string(),
+        },
+        Movie {
+            image: Image {
+                image_url: "http://localhost:8080/images/p2160254162.jpg".to_string(),
+                image_size: Some(ImageSize {
+                    image_width: 115.0,
+                    image_height: 164.0,
+                }),
+            },
+            name: "The Wolf of Wall Street".to_string(),
+            platform: vec!["netflix".to_string()],
+            issue_date: "2013-12-25".to_string(),
+        },
+    ]
+    .to_vec()
 }
 
 fn load_image(image_data: &[u8]) -> Result<egui::ColorImage, image::ImageError> {
@@ -342,4 +436,15 @@ fn download_image(
             }
         }
     });
+}
+
+fn store_movies(app: &mut App, _ctx: &Context, _frame: &epi::Frame) {
+    for movie in &app.movies {
+        download_image(
+            movie.image.image_url.clone(),
+            _ctx,
+            _frame,
+            Arc::clone(&app.images),
+        );
+    }
 }
