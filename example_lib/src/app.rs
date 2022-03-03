@@ -306,6 +306,8 @@ fn load_image(image_data: &[u8]) -> Result<egui::ColorImage, image::ImageError> 
     // http://localhost:8080/images/xnopI5Xtky18MPhK40cZAGAOVeV.jpg to_rgba8 3.379795055s
     // http://localhost:8080/images/xnopI5Xtky18MPhK40cZAGAOVeV.jpg as_flat_samples 2.555µs
     // http://localhost:8080/images/xnopI5Xtky18MPhK40cZAGAOVeV.jpg total_time 10.793300086s
+
+    // The larger the image dimension, the slower the processing
     let image = image::load_from_memory(image_data)?;
     let size = [image.width() as _, image.height() as _];
     let image_buffer = image.to_rgba8();
