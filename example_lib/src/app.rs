@@ -4,23 +4,20 @@ use std::{
 };
 
 use egui::{vec2, Color32, Context, TextStyle, TextureHandle, Ui};
+use serde::Deserialize;
+use time::OffsetDateTime;
 
 type ImageHashMap = Arc<Mutex<HashMap<String, Option<TextureHandle>>>>;
+type Movies = Arc<Mutex<Vec<Movie>>>;
+
 const FONT_TABLE_TITLE: egui::FontId = egui::FontId {
     size: 32.0,
     family: egui::FontFamily::Proportional,
 };
 
 #[derive(Clone)]
-struct ImageSize {
-    image_width: f32,
-    image_height: f32,
-}
-
-#[derive(Clone)]
 struct Image {
     image_url: String,
-    image_size: Option<ImageSize>,
 }
 #[derive(Clone)]
 struct Movie {
@@ -47,7 +44,7 @@ enum LeftMenu {
 pub struct App {
     inspection: bool,
     images: ImageHashMap,
-    movies: Vec<Movie>,
+    movies: Movies,
     my_image: Option<TextureHandle>,
     left_menu: LeftMenu,
 }
@@ -57,7 +54,7 @@ impl App {
         Self {
             inspection: false,
             images: Default::default(),
-            movies: Vec::default(),
+            movies: Default::default(),
             my_image: Default::default(),
             left_menu: LeftMenu::Action,
         }
@@ -112,9 +109,13 @@ impl epi::App for App {
         // Tell egui to use these fonts:
         _ctx.set_fonts(fonts);
 
-        self.movies = data_action();
-
-        store_movies(self, _ctx, _frame);
+        request_json(
+            "http://localhost:8080/movies.1.json".to_string(),
+            _ctx,
+            _frame,
+            Arc::clone(&self.movies),
+            Arc::clone(&self.images),
+        );
     }
 
     /// Called by the frame work to save state before shutdown.
@@ -160,15 +161,27 @@ impl epi::App for App {
                         .selectable_value(&mut self.left_menu, LeftMenu::Action, "Action")
                         .clicked()
                     {
-                        self.movies = data_action();
-                        store_movies(self, ctx, frame);
+                        self.movies.lock().unwrap().clear();
+                        request_json(
+                            "http://localhost:8080/movies.1.json".into(),
+                            ctx,
+                            frame,
+                            Arc::clone(&self.movies),
+                            Arc::clone(&self.images),
+                        );
                     };
                     if ui
                         .selectable_value(&mut self.left_menu, LeftMenu::Comedy, "Comedy")
                         .clicked()
                     {
-                        self.movies = data_comedy();
-                        store_movies(self, ctx, frame);
+                        self.movies.lock().unwrap().clear();
+                        request_json(
+                            "http://localhost:8080/movies.2.json".into(),
+                            ctx,
+                            frame,
+                            Arc::clone(&self.movies),
+                            Arc::clone(&self.images),
+                        );
                     }
                     ui.selectable_value(&mut self.left_menu, LeftMenu::Adventure, "Adventure");
                 });
@@ -204,8 +217,18 @@ impl epi::App for App {
             }
 
             match self.left_menu {
-                LeftMenu::Action => display_action(ui, self),
-                LeftMenu::Comedy => display_action(ui, self),
+                LeftMenu::Action => display_action(
+                    ui,
+                    Arc::clone(&self.movies),
+                    Arc::clone(&self.images),
+                    &self.my_image,
+                ),
+                LeftMenu::Comedy => display_action(
+                    ui,
+                    Arc::clone(&self.movies),
+                    Arc::clone(&self.images),
+                    &self.my_image,
+                ),
                 LeftMenu::Adventure => todo!(),
                 LeftMenu::BTV => todo!(),
                 LeftMenu::MTV => todo!(),
@@ -216,13 +239,18 @@ impl epi::App for App {
     }
 }
 
-fn display_action(ui: &mut Ui, app: &mut App) {
+fn display_action(
+    ui: &mut Ui,
+    movies: Movies,
+    images: ImageHashMap,
+    my_image: &Option<TextureHandle>,
+) {
     egui::ScrollArea::horizontal()
         .id_source("scroll_images")
         .always_show_scroll(true)
         .show(ui, |ui| {
             ui.horizontal(|ui| {
-                for image_tex_opt in app.images.lock().unwrap().values() {
+                for image_tex_opt in images.lock().unwrap().values() {
                     if let Some(image_tex) = image_tex_opt {
                         ui.image(image_tex, vec2(115.0, 162.0));
                     }
@@ -238,26 +266,19 @@ fn display_action(ui: &mut Ui, app: &mut App) {
                 .num_columns(3)
                 .striped(true)
                 .spacing([40.0, 4.0])
-                // .min_col_width(10.0)
-                // .max_col_width(200.0)
                 .show(ui, |ui| {
-                    for game in &app.movies {
-                        let image_tex = app.images.lock().unwrap();
+                    let f = movies.lock().unwrap();
+                    for game in f.iter() {
+                        let image_tex = images.lock().unwrap();
                         if image_tex.contains_key(&game.image.image_url) {
                             let tex = image_tex
                                 .get(&game.image.image_url)
                                 .unwrap()
                                 .as_ref()
                                 .unwrap();
-                            ui.image(
-                                tex,
-                                match &game.image.image_size {
-                                    Some(size) => egui::vec2(size.image_width, size.image_height),
-                                    None => tex.size_vec2(),
-                                },
-                            );
+                            ui.image(tex, egui::vec2(115.0, 164.0));
                         } else {
-                            if let Some(image) = &app.my_image {
+                            if let Some(image) = my_image {
                                 ui.image(image, image.size_vec2());
                             }
                         }
@@ -278,126 +299,6 @@ fn display_action(ui: &mut Ui, app: &mut App) {
                     }
                 });
         });
-}
-
-fn data_action() -> Vec<Movie> {
-    [
-        Movie {
-            image: Image {
-                image_url: "http://localhost:8080/images/p462657443.jpg".to_string(),
-                image_size: Some(ImageSize {
-                    image_width: 115.0,
-                    image_height: 164.0,
-                }),
-            },
-            name: "The Dark Knight".to_string(),
-            platform: vec!["netflix".to_string()],
-            issue_date: "2008-07-18".to_string(),
-        },
-        Movie {
-            image: Image {
-                image_url: "http://localhost:8080/images/p2209718348.jpg".to_string(),
-                image_size: Some(ImageSize {
-                    image_width: 115.0,
-                    image_height: 164.0,
-                }),
-            },
-            name: "The Hunger Games".to_string(),
-            platform: vec!["amazon prime".to_string()],
-            issue_date: "2012-03-23".to_string(),
-        },
-        Movie {
-            image: Image {
-                image_url: "http://localhost:8080/images/p2279945831.jpg".to_string(),
-                image_size: Some(ImageSize {
-                    image_width: 115.0,
-                    image_height: 164.0,
-                }),
-            },
-            name: "The Revenant".to_string(),
-            platform: vec!["netflix".to_string()],
-            issue_date: "2016-01-08".to_string(),
-        },
-        Movie {
-            image: Image {
-                image_url: "http://localhost:8080/images/p858079649.jpg".to_string(),
-                image_size: Some(ImageSize {
-                    image_width: 115.0,
-                    image_height: 164.0,
-                }),
-            },
-            name: "King Kong".to_string(),
-            platform: vec!["netflix".to_string()],
-            issue_date: "2005-12-14".to_string(),
-        },
-    ]
-    .to_vec()
-}
-
-fn data_comedy() -> Vec<Movie> {
-    [
-        Movie {
-            image: Image {
-                image_url: String::from("http://localhost:8080/images/p735379215.jpg"),
-                image_size: Some(ImageSize {
-                    image_width: 115.0,
-                    image_height: 164.0,
-                }),
-            },
-            name: "The Devil Wears Prada".to_string(),
-            platform: vec!["netflix".to_string()],
-            issue_date: "2006-06-30".to_string(),
-        },
-        Movie {
-            image: Image {
-                image_url: "http://localhost:8080/images/p792443418.jpg".to_string(),
-                image_size: Some(ImageSize {
-                    image_width: 115.0,
-                    image_height: 164.0,
-                }),
-            },
-            name: "Lock, Stock and Two Smoking Barrels".to_string(),
-            platform: vec!["netflix".to_string(), "amazon prime".to_string()],
-            issue_date: "1998-08-28".to_string(),
-        },
-        Movie {
-            image: Image {
-                image_url: "http://localhost:8080/images/p854757687.jpg".to_string(),
-                image_size: Some(ImageSize {
-                    image_width: 115.0,
-                    image_height: 164.0,
-                }),
-            },
-            name: "The Terminal".to_string(),
-            platform: vec!["amazon prime".to_string()],
-            issue_date: "2004-06-18".to_string(),
-        },
-        Movie {
-            image: Image {
-                image_url: "http://localhost:8080/images/p1454261925.jpg".to_string(),
-                image_size: Some(ImageSize {
-                    image_width: 115.0,
-                    image_height: 164.0,
-                }),
-            },
-            name: "Intouchables".to_string(),
-            platform: vec!["netflix".to_string()],
-            issue_date: "2011-11-02".to_string(),
-        },
-        Movie {
-            image: Image {
-                image_url: "http://localhost:8080/images/p2160254162.jpg".to_string(),
-                image_size: Some(ImageSize {
-                    image_width: 115.0,
-                    image_height: 164.0,
-                }),
-            },
-            name: "The Wolf of Wall Street".to_string(),
-            platform: vec!["netflix".to_string()],
-            issue_date: "2013-12-25".to_string(),
-        },
-    ]
-    .to_vec()
 }
 
 fn load_image(image_data: &[u8]) -> Result<egui::ColorImage, image::ImageError> {
@@ -430,21 +331,56 @@ fn download_image(
             let data = r.bytes;
             if let Some(handle) = parse_image(&ctx2, image_url.clone(), &data) {
                 if images.lock().unwrap().get(&image_url).is_none() {
-                    images.lock().unwrap().insert(image_url, Some(handle));
+                    images
+                        .lock()
+                        .unwrap()
+                        .insert(image_url.clone(), Some(handle));
                 }
+                println!("download_image {}", image_url);
                 frame2.request_repaint();
             }
         }
     });
 }
 
-fn store_movies(app: &mut App, _ctx: &Context, _frame: &epi::Frame) {
-    for movie in &app.movies {
-        download_image(
-            movie.image.image_url.clone(),
-            _ctx,
-            _frame,
-            Arc::clone(&app.images),
-        );
-    }
+#[derive(Deserialize, Debug)]
+struct MovieJson {
+    title: String,
+    poster: String,
+    release_date: i64,
+}
+fn request_json(
+    json_url: String,
+    _ctx: &Context,
+    _frame: &epi::Frame,
+    movies: Movies,
+    images: ImageHashMap,
+) {
+    let ctx2 = _ctx.clone();
+    let frame2 = _frame.clone();
+    ehttp::fetch(ehttp::Request::get(json_url.clone()), move |r| {
+        if let Ok(r) = r {
+            let data = r.text();
+            let json: Vec<MovieJson> = serde_json::from_str(data.unwrap()).unwrap();
+
+            let format = time::format_description::parse("[year]-[month]-[day]");
+            for mj in json {
+                let r = OffsetDateTime::from_unix_timestamp(mj.release_date);
+                let t = r.unwrap().format(&format.as_ref().unwrap()).unwrap();
+                movies.lock().unwrap().push(Movie {
+                    image: Image {
+                        image_url: mj.poster.clone(),
+                    },
+                    name: mj.title,
+                    platform: vec!["netflix".into()],
+                    issue_date: t,
+                });
+
+                download_image(mj.poster, &ctx2, &frame2, Arc::clone(&images));
+            }
+
+            println!("request_json {}", json_url);
+            frame2.request_repaint();
+        }
+    });
 }

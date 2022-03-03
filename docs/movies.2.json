@@ -1,0 +1,72 @@
+[
+    {
+        "id": "76338",
+        "title": "Thor: The Dark World",
+        "poster": "https://image.tmdb.org/t/p/w1280/bnX5PqAdQZRXSw3aX3DutDcdso5.jpg",
+        "overview": "Thor fights to restore order across the cosmos… but an ancient race led by the vengeful Malekith returns to plunge the universe back into darkness. Faced with an enemy that even Odin and Asgard cannot withstand, Thor must embark on his most perilous and personal journey yet, one that will reunite him with Jane Foster and force him to sacrifice everything to save us all.",
+        "release_date": 1383004800
+    },
+    {
+        "id": "460321",
+        "title": "Close",
+        "poster": "https://image.tmdb.org/t/p/w1280/4kjUGqPIv6kpxJUvjmeQX7nQpKd.jpg",
+        "overview": "A counter-terrorism expert takes a job protecting a young heiress. After an attempted kidnapping puts both of their lives in danger, they must flee.",
+        "release_date": 1547769600
+    },
+    {
+        "id": "327331",
+        "title": "The Dirt",
+        "poster": "https://image.tmdb.org/t/p/w1280/xGY5rr8441ib0lT9mtHZn7e8Aay.jpg",
+        "overview": "The story of Mötley Crüe and their rise from the Sunset Strip club scene of the early 1980s to superstardom.",
+        "release_date": 1553212800
+    },
+    {
+        "id": "412157",
+        "title": "Steel Country",
+        "poster": "https://image.tmdb.org/t/p/w1280/7QqFn9UzuSnh1uOPeSfYL1MFjkB.jpg",
+        "overview": "When a young boy turns up dead in a sleepy Pennsylvania town, a local sanitation truck driver, Donald, plays detective, embarking on a precarious and obsessive investigation to prove the boy was murdered.",
+        "release_date": 1555030800
+    },
+    {
+        "id": "122",
+        "title": "The Lord of the Rings: The Return of the King",
+        "poster": "https://image.tmdb.org/t/p/w1280/rCzpDGLbOoPwLjy3OAm5NUPOTrC.jpg",
+        "overview": "Aragorn is revealed as the heir to the ancient kings as he, Gandalf and the other members of the broken fellowship struggle to save Gondor from Sauron's forces. Meanwhile, Frodo and Sam bring the ring closer to the heart of Mordor, the dark lord's realm.",
+        "release_date": 1070236800
+    },
+    {
+        "id": "348",
+        "title": "Alien",
+        "poster": "https://image.tmdb.org/t/p/w1280/2h00HrZs89SL3tXB4nbkiM7BKHs.jpg",
+        "overview": "During its return to the earth, commercial spaceship Nostromo intercepts a distress signal from a distant planet. When a three-member team of the crew discovers a chamber containing thousands of eggs on the planet, a creature inside one of the eggs attacks an explorer. The entire crew is unaware of the impending nightmare set to descend upon them when the alien parasite planted inside its unfortunate host is birthed.",
+        "release_date": 296442000
+    },
+    {
+        "id": "140607",
+        "title": "Star Wars: The Force Awakens",
+        "poster": "https://image.tmdb.org/t/p/w1280/weUSwMdQIa3NaXVzwUoIIcAi85d.jpg",
+        "overview": "Thirty years after defeating the Galactic Empire, Han Solo and his allies face a new threat from the evil Kylo Ren and his army of Stormtroopers.",
+        "release_date": 1450137600
+    },
+    {
+        "id": "293660",
+        "title": "Deadpool",
+        "poster": "https://image.tmdb.org/t/p/w1280/inVq3FRqcYIRl2la8iZikYYxFNR.jpg",
+        "overview": "Deadpool tells the origin story of former Special Forces operative turned mercenary Wade Wilson, who after being subjected to a rogue experiment that leaves him with accelerated healing powers, adopts the alter ego Deadpool. Armed with his new abilities and a dark, twisted sense of humor, Deadpool hunts down the man who nearly destroyed his life.",
+        "release_date": 1454976000
+    },
+    {
+        "id": "332562",
+        "title": "A Star Is Born",
+        "poster": "https://image.tmdb.org/t/p/w1280/wrFpXMNBRj2PBiN4Z5kix51XaIZ.jpg",
+        "overview": "Seasoned musician Jackson Maine discovers — and falls in love with — struggling artist Ally. She has just about given up on her dream to make it big as a singer — until Jack coaxes her into the spotlight. But even as Ally's career takes off, the personal side of their relationship is breaking down, as Jack fights an ongoing battle with his own internal demons.",
+        "release_date": 1538528400
+    },
+    {
+        "id": "426563",
+        "title": "Holmes & Watson",
+        "poster": "https://image.tmdb.org/t/p/w1280/orEUlKndjV1rEcWqXbbjegjfv97.jpg",
+        "overview": "Detective Sherlock Holmes and Dr. John Watson join forces to investigate a murder at Buckingham Palace. They soon learn that they have only four days to solve the case, or the queen will become the next victim.",
+        "release_date": 1545696000
+    }
+]
