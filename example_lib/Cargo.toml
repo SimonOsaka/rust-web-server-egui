@@ -16,6 +16,7 @@ epi = { version = "0.17.0" }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
 time = { version = "0.3", features = ["formatting"] }
+# stopwatch2 = "2"
 ehttp = { version = "0.2.0" }
 image = { version = "0.24", default-features = false, features = [
     "jpeg",

@@ -23,7 +23,6 @@ struct Image {
 struct Movie {
     image: Image,
     name: String,
-    platform: Vec<String>,
     issue_date: String,
 }
 
@@ -287,13 +286,6 @@ fn display_action(
                                 .color(Color32::BLUE)
                                 .font(FONT_TABLE_TITLE),
                         );
-                        ui.horizontal(|ui| {
-                            for p in game.platform.clone() {
-                                ui.label(
-                                    egui::RichText::new(p).background_color(Color32::LIGHT_GRAY),
-                                );
-                            }
-                        });
                         ui.label(game.issue_date.clone());
                         ui.end_row();
                     }
@@ -302,7 +294,18 @@ fn display_action(
 }
 
 fn load_image(image_data: &[u8]) -> Result<egui::ColorImage, image::ImageError> {
-    // use image::GenericImageView as _;
+    //
+    // 1. Photo [270x400][25KB], image::load_from_memory fast🙂, total time is 0.128s
+    // http://localhost:8080/images/p462657443.jpg load_from_memory 88.233403ms
+    // http://localhost:8080/images/p462657443.jpg to_rgba8 40.016955ms
+    // http://localhost:8080/images/p462657443.jpg as_flat_samples 1.36µs
+    // http://localhost:8080/images/p462657443.jpg total_time 0.128251718s
+
+    // 2. Photo [1280x1920][441KB], image::load_from_memory slowly😒, total time is 10.793s
+    // http://localhost:8080/images/xnopI5Xtky18MPhK40cZAGAOVeV.jpg load_from_memory 7.413502476s
+    // http://localhost:8080/images/xnopI5Xtky18MPhK40cZAGAOVeV.jpg to_rgba8 3.379795055s
+    // http://localhost:8080/images/xnopI5Xtky18MPhK40cZAGAOVeV.jpg as_flat_samples 2.555µs
+    // http://localhost:8080/images/xnopI5Xtky18MPhK40cZAGAOVeV.jpg total_time 10.793300086s
     let image = image::load_from_memory(image_data)?;
     let size = [image.width() as _, image.height() as _];
     let image_buffer = image.to_rgba8();
@@ -313,9 +316,9 @@ fn load_image(image_data: &[u8]) -> Result<egui::ColorImage, image::ImageError> 
     ))
 }
 
-fn parse_image(ctx: &egui::Context, url: String, data: &[u8]) -> Option<TextureHandle> {
+fn parse_image(ctx: &egui::Context, image_url: String, data: &[u8]) -> Option<TextureHandle> {
     let image = load_image(data).ok();
-    image.map(|image| ctx.load_texture(url, image))
+    image.map(|image| ctx.load_texture(&image_url, image))
 }
 
 fn download_image(
@@ -336,7 +339,7 @@ fn download_image(
                         .unwrap()
                         .insert(image_url.clone(), Some(handle));
                 }
-                println!("download_image {}", image_url);
+
                 frame2.request_repaint();
             }
         }
@@ -372,14 +375,12 @@ fn request_json(
                         image_url: mj.poster.clone(),
                     },
                     name: mj.title,
-                    platform: vec!["netflix".into()],
                     issue_date: t,
                 });
 
                 download_image(mj.poster, &ctx2, &frame2, Arc::clone(&images));
             }
 
-            println!("request_json {}", json_url);
             frame2.request_repaint();
         }
     });
