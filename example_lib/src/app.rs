@@ -23,6 +23,7 @@ struct Image {
 struct Movie {
     image: Image,
     name: String,
+    overview: String,
     issue_date: String,
 }
 
@@ -267,6 +268,7 @@ fn display_action(
                 .spacing([40.0, 4.0])
                 .show(ui, |ui| {
                     let f = movies.lock().unwrap();
+                    let mut i = 0;
                     for game in f.iter() {
                         let image_tex = images.lock().unwrap();
                         if image_tex.contains_key(&game.image.image_url) {
@@ -281,11 +283,19 @@ fn display_action(
                                 ui.image(image, image.size_vec2());
                             }
                         }
-                        ui.label(
-                            egui::RichText::new(game.name.clone())
-                                .color(Color32::BLUE)
-                                .font(FONT_TABLE_TITLE),
-                        );
+                        egui::Grid::new(format!("nested my_grid {}", i))
+                            .max_col_width(500.0)
+                            .show(ui, |ui| {
+                                ui.label(
+                                    egui::RichText::new(game.name.clone()).font(FONT_TABLE_TITLE),
+                                );
+                                ui.end_row();
+                                ui.label(
+                                    egui::RichText::new(game.overview.clone()).color(Color32::GRAY),
+                                );
+                            });
+                        i += 1;
+
                         ui.label(game.issue_date.clone());
                         ui.end_row();
                     }
@@ -352,6 +362,7 @@ fn download_image(
 struct MovieJson {
     title: String,
     poster: String,
+    overview: String,
     release_date: i64,
 }
 fn request_json(
@@ -377,6 +388,7 @@ fn request_json(
                         image_url: mj.poster.clone(),
                     },
                     name: mj.title,
+                    overview: mj.overview,
                     issue_date: t,
                 });
 
